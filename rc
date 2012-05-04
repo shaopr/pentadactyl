@@ -1,0 +1,420 @@
+"" {{{ Mapping
+"" scroll more
+nmap -builtin j 10j
+nmap -builtin k 10k
+
+"" swap d/D, and workaround for / tend to cause zombie compartments
+nmap -builtin d /❤❤❤❤<CR>D
+nmap -builtin D /❤❤❤❤<CR>d
+"nmap -builtin d :js config.removeTab(tabs.getTab())<CR>
+
+"" swap y/Y
+"nmap -builtin y Y
+"nmap -builtin Y y
+
+"" swap p/P
+nmap -builtin p P
+nmap -builtin P p
+
+"" J/K move left/right
+"nmap -builtin J h
+"nmap -builtin K l
+
+"" w/e switch tabs
+nmap -builtin w <C-p>
+nmap -builtin e <C-n>
+
+"" back/forward
+nmap -builtin h <C-o>
+nmap -builtin l <C-i>
+
+"" prev selected tab
+nmap -builtin x <C-^>
+
+"" <M-i> focus on input
+"nmap -builtin <M-i> gi
+
+"" U list closed tabs
+nmap -builtin U :undo<Space>
+
+"" toggle menubar
+nmap -builtin gm :set guioptions!=m<CR>
+
+"" viewsource in new tab
+nmap -builtin gf :tab viewsource<CR>
+
+"" swap full zoom and text zoom mapping
+nmap -builtin zi ZI
+nmap -builtin zm ZM
+nmap -builtin zo ZO
+nmap -builtin zr ZR
+nmap -builtin zz zZ
+nmap -builtin ZI zi
+nmap -builtin ZM zm
+nmap -builtin ZO zo
+nmap -builtin ZR zr
+nmap -builtin zZ zz
+
+"" set <Leader>
+map , <Leader>
+
+"" open addons manager
+nmap -builtin <Leader>a :dialog addons<CR>
+
+"" rehash
+nmap -builtin <Leader>R :rehash<CR>
+
+"" private mode
+nmap -builtin <Leader>p :set private!<CR>
+
+"" fullscreen
+nmap -builtin <Leader>F :set fullscreen!<CR>
+
+"" display download
+nmap -builtin <Leader>d :downloads<CR>
+
+"" about:config
+nmap -builtin <Leader>c :tabopen about:config<CR>
+
+"" auto add -tags option when adding bookmark
+nmap -builtin a a<Space>-tags<Space>
+
+"" tabgroup
+if config.OS.isMacOSX
+nmap -builtin <Leader>e <S-M-e>
+else
+nmap -builtin <Leader>e <S-C-e>
+end
+
+"" jumping at hint mode, see http://code.google.com/p/dactyl/issues/detail?id=158
+"map -modes hints j     -ex normal! 10j
+"map -modes hints k     -ex normal! 10k
+map -modes hints <C-f> -ex normal! <C-f>
+map -modes hints <C-b> -ex normal! <C-b>
+"map -modes hints gg    -ex normal! gg
+"map -modes hints G     -ex normal! G
+"" }}}
+
+"" {{{ Searching
+"" from http://www.slimeden.com/2011/03/firefox/pentadactyl
+":map t -js content.getSelection().toString()!=""?dactyl.execute(":tabopen "+ content.getSelection()):CommandExMode().open("tabopen ")
+":map o -js content.getSelection().toString()!=""?dactyl.execute(":open "+ content.getSelection()):CommandExMode().open("open ")
+command -nargs=* -complete=search search execute 'tabopen <args> ' + content.getSelection().toString()
+map s :search<Space>
+command -nargs=? -complete=search switchSearch execute 'open <args> ' + (buffer.lastInputField?buffer.lastInputField.value:'')
+map S gi<ESC> :switchSearch<Space>
+command -nargs=* siteSearch execute "tabopen <args> site:" + window.content.location.hostname
+
+set defsearch=g
+"" }}}
+
+"" {{{ Option
+"" ]]/[[ turn next/previous page
+set nextpattern&
+set nextpattern^='[下后]一?[页张个篇章]','\bolder\s*posts\b'
+set previouspattern&
+set previouspattern^='[上前]一?[页张个篇章]','\bnewer\s*posts\b'
+
+"" do not display right scrollbar and commandline
+"set guioptions+=n
+set guioptions=sbn
+
+"" open things at new tab
+set newtab=all
+
+"" only show the tab bar when there are multiple tabs
+set showtabline=multitab
+
+"" highlight search
+"set hlfind
+
+"" complete search engine suguest
+set complete=location,suggestion
+
+"" allow popups popup
+set popups=tab,resized
+
+"" home row as hintkeys
+"set hintkeys=asdfg;lkjh
+"set hintkeys="4;/.123"
+
+"" only follow hints when press enter
+"set followhints=1
+
+"" show link when hover links
+"set showstatuslinks=command
+
+"" disable annoying auto focus
+set strictfocus^=tao123.com:despotic
+
+"" disable smooth scroll
+set scrollsteps=1
+set scrolltime=0
+"" }}}
+
+"" {{{ Command
+"" smart reload
+command smartReload -js <<EOF
+if (buffer.URL.spec.indexOf('#') >= 0) {
+    dactyl.execute("reload");
+} else {
+    dactyl.open(buffer.URL.spec);
+}
+EOF
+nmap -builtin r :smartReload<CR>
+
+command smartReader -js <<EOF
+if (typeof __readable_by_evernote === "object") {
+    dactyl.execute("emenu Tools.Clearly");
+} else if (typeof FirefoxReader === "object") {
+    dactyl.execute("feedkeys <M-A-z>");
+} else if (typeof commands.get("readability") === "object") {
+    dactyl.execute("readability");
+} else {
+    dactyl.execute("bml-readability");
+}
+EOF
+nmap -builtin <Leader>r :smartReader<CR>
+
+"" flush browser dns
+command flushdns set! network.dnsCacheExpiration=0 | set! network.dnsCacheExpiration&
+
+"" use flvcd and DTA to download video
+command! flvcd -nargs=? -count -js <<EOF
+var flvcd = function(url) {
+    var format_list = ["", "real", "super", "high", "normal"];
+    var format = "super";
+    if (count) {
+        format = format_list[count];
+    }
+    var html = util.httpGet("http://www.flvcd.com/parse.php", {params: {kw: url, format: format}}).responseText;
+    var links = $(html).find("td a[onclick]").map(function(){return $(this).attr("href");}).get();
+    return links;
+};
+var dta = function(urls) {
+    if (!DTA) {
+        dactyl.echo("DownThemAll not installed");
+        return;
+    }
+    var renaming = JSON.parse(prefs.get("extensions.dta.renaming"));
+    var videoRenaming = "video-*m*.*d*-*hh*.*mm*.*ss*/*inum*.*ext*";
+    var index = renaming.indexOf(videoRenaming);
+    if (index == -1) {
+        renaming.splice(0, 0, videoRenaming);
+    } else if (index > 0) {
+        renaming[index] = renaming[0];
+        renaming[0] = videoRenaming;
+    }
+    prefs.set("extensions.dta.renaming", JSON.stringify(renaming));
+    var anchors = [], images = [];
+    var wrapURL = function(url, cs) { return new DTA.URL(DTA.IOService.newURI(url, cs, null)); };
+    anchors = urls.map(function(elem){ return {url: wrapURL(elem, "UTF-8")}; });
+    DTA.saveLinkArray(null, anchors, images);
+};
+var url = args.length ? args : buffer.URL.spec;
+dta(flvcd(url));
+EOF
+group -locations http://v.youku.com/v_show/*,http://www.youku.com/playlist_show/*,http://www.tudou.com/programs/view/*,http://www.tudou.com/playlist/* flvcd
+nmap -builtin ge :flvcd<CR>
+group user
+
+"" open chdbits torrent
+command! chdbits -js <<EOF
+var chdbits = function (url) {
+    var torrent = 'http://chdbits.org/download.php?id=' + url.match(/\?id=([0-9]+)/)[1];
+    var tmpFile = io.createTempFile('torrent');
+    buffer.saveURI(util.newURI(torrent), tmpFile, function() {
+        tmpFile.launch();
+    });
+}
+chdbits(buffer.URL.spec);
+EOF
+group -locations http://chdbits.org/details.php?id=* chdbits
+nmap -builtin ge :chdbits<CR>
+group user
+
+"" open using external browser
+command! openEx -nargs=? -js <<EOF
+var url = args.length ? args : buffer.URL.spec;
+if (config.OS.isMacOSX) {
+    io.system("open -a Safari '" + url + "'");
+} else {
+    dactyl.execute("tabopen " + url);
+}
+EOF
+nmap -builtin ge :openEx<CR>
+
+"" kanged from https://github.com/blueyed/dotfiles/blob/master/pentadactylrc
+"" Open current location via Coral CDN
+"" String.replace is a workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=633830
+command coralcdn -js dactyl.open( String.replace(buffer.URL.spec, /(\.\w{2,4})\//, "$1.nyud.net/") )
+nmap -builtin gp :coralcdn<CR>
+
+command gohttps -js <<EOF
+if (buffer.URL.spec.indexOf('http://') === 0) {
+    dactyl.open(String.replace(buffer.URL.spec, /^http/i, 'https'));
+} else if (buffer.URL.spec.indexOf('https://') === 0) {
+    dactyl.open(String.replace(buffer.URL.spec, /^https/i, 'http'));
+}
+EOF
+nmap -builtin gs :gohttps<CR>
+
+"" display calendar
+command cal -js dactyl.echo(<datepicker type="grid" xmlns={XUL}/>)
+
+"" google translate
+command trans -js <<EOF
+var getParameterByName = function(url, name) {
+    var name = name.replace(/[\[]/, '\\\[').replace(/[\]]/, '\\\]');
+    var regexS = '[\\?&]' + name + '=([^&#]*)';
+    var regex = new RegExp(regexS);
+    var results = regex.exec(url);
+    if (results == null)
+        return '';
+    else
+        return decodeURIComponent(results[1].replace(/\+/g, ' '));
+}
+if (buffer.URL.spec.indexOf('http://translate.google.com/') !==0) {
+    dactyl.open('http://translate.google.com/translate?hl=en&sl=auto&tl=en&u=' + encodeURIComponent(buffer.URL.spec));
+} else {
+    dactyl.open(getParameterByName(buffer.URL.spec, 'u'));
+}
+EOF
+nmap -builtin <Leader>t :trans<CR>
+
+command bootstrap :runtime bootstrap
+"" }}}
+
+"" {{{ AutoCMD
+"" workaround for tabgroups manager causing P misbehave
+"nmap -builtin p :js dactyl.execute(":tabopen " + dactyl.clipboardRead())<CR>
+
+"" use https for some sites
+"autocmd PageLoad '^http://((reader|groups|docs|spreadsheets)\.google\.com|www\.google\.com/(search|reader))' -js window.content.location.href=window.content.location.href.replace(/^http/i, "https");
+
+"" set title to url
+"autocmd LocationChange .* :set titlestring=<url>
+
+"" use google to get lwn subscription link
+autocmd -javascript PageLoad 'https://lwn.net/Articles/*' <<EOF
+if (doc.title.match(/subscription/i)) {
+    var title = doc.getElementsByClassName("ArticleText")[0].getElementsByTagName("a")[0].innerHTML;
+    dactyl.open('gl site:lwn.net/SubscriberLink "' + title + '"');
+}
+EOF
+"" }}}
+
+"" {{{ Style
+colorscheme mybeta1
+"highlight WarningMsg display:none;
+"" }}}
+
+"" {{{ Bookmarklet
+nmap -builtin <Leader>b :bml-
+nmap -builtin <Leader>s :bml-subscribe<CR>
+command bml-readable -description "Bookmarklet: Make webpage readable" open javascript:(function(){_readableOptions={'text_font':'Vollkorn','text_font_monospace':'quote(Courier%20New),%20Courier,%20monospace','text_font_header':'quote(Palatino%20Linotype),%20Palatino,%20quote(Book%20Antigua),%20Georgia,%20serif','text_size':'20px','text_line_height':'1.5','box_width':'35em','color_text':'#282828','color_background':'#E5DED6','color_links':'#EE4545','text_align':'normal','base':'blueprint','custom_css':''};if(document.getElementsByTagName('body').length>0);else{return;}if(window.$readable){if(window.$readable.bookmarkletTimer){return;}}else{window.$readable={};}window.$readable.bookmarkletTimer=true;window.$readable.options=_readableOptions;if(window.$readable.bookmarkletClicked){window.$readable.bookmarkletClicked();return;}_readableScript=document.createElement('script');_readableScript.setAttribute('src','http://readable-static.tastefulwords.com/target.js?rand='+encodeURIComponent(Math.random()));document.getElementsByTagName('body')[0].appendChild(_readableScript);})()
+command bml-page2rss -description "Bookmarklet: Turn any page to RSS" open javascript:(function(){if(!window.page2rss_bookmark_urlr)window.page2rss_bookmark_urlr=function(ur){if(ur.error)alert(ur.error);if(ur.page&&ur.page.page)location.href=ur.page.page};var%20r=document.getElementById('urlFormRequest');if(r)r.parentNode.removeChild(r);r=document.createElement('script');r.id='urlFormRequest';r.type='text/javascript';r.src='http://page2rss.com/api/page?url='+encodeURIComponent(location.href)+'&callback=page2rss_bookmark_urlr';document.body.appendChild(r);})();
+command bml-share -description "Bookmarklet: Google reader official bookmarklet" open javascript:var%20b=document.body;var%20GR________bookmarklet_domain='http://www.google.com';if(b&&!document.xmlVersion){void(z=document.createElement('script'));void(z.src='http://www.google.com/reader/ui/link-bookmarklet.js');void(b.appendChild(z));}else{}
+command bml-subscribe -description "Bookmarklet: Subscribe using Google reader" open javascript:var%20b=document.body;var%20GR________bookmarklet_domain='http://www.google.com';if(b&&!document.xmlVersion){void(z=document.createElement('script'));void(z.src='http://www.google.com/reader/ui/subscribe-bookmarklet.js');void(b.appendChild(z));}else{location='http://www.google.com/reader/view/feed/'+encodeURIComponent(location.href)}
+command bml-twitter -description "Bookmarklet: Share on Twitter" open javascript:(function(){window.twttr=window.twttr||{};var%20D=550,A=450,C=screen.height,B=screen.width,H=Math.round((B/2)-(D/2)),G=0,F=document,E;if(C>A){G=Math.round((C/2)-(A/2))}window.twttr.shareWin=window.open('http://twitter.com/share','','left='+H+',top='+G+',width='+D+',height='+A+',personalbar=0,toolbar=0,scrollbars=1,resizable=1');E=F.createElement('script');E.src='http://platform.twitter.com/bookmarklets/share.js?v=1';F.getElementsByTagName('head')[0].appendChild(E)}());
+command bml-readability -description "Bookmarklet: Make webpage readable using readability" open javascript:(%28function%28%29%7Bwindow.baseUrl%3D%27http%3A//www.readability.com%27%3Bwindow.readabilityToken%3D%27%27%3Bvar%20s%3Ddocument.createElement%28%27script%27%29%3Bs.setAttribute%28%27type%27%2C%27text/javascript%27%29%3Bs.setAttribute%28%27charset%27%2C%27UTF-8%27%29%3Bs.setAttribute%28%27src%27%2CbaseUrl%2B%27/bookmarklet/read.js%27%29%3Bdocument.documentElement.appendChild%28s%29%3B%7D%29%28%29)
+"" }}}
+
+"" {{{ Misc
+"" ~ as pwd
+silent cd ~
+
+"" plugins
+set loadplugins='\.(css|js|penta)$'
+
+"" workaround for TabGroupie
+js <<EOF
+setTimeout(function(){
+    plugins.tabgroupieTabGroupie.TabGroupie.init()
+}, 5000);
+EOF
+
+"" when follow link, switch to buffer if found or open it
+:js <<EOF
+var switchOrOpen = function (url) {
+    if (buffer.URL.spec === url) return false;
+    if (url.indexOf("#", url.length - 1) !== -1) return false;
+    var matches = array.nth(tabs.allTabs, function (t)(t.linkedBrowser.lastURI || {}).spec === url, 0);
+    if (matches) {
+        tabs.select(matches, false);
+        return true;
+    } else {
+        return false;
+    }
+};
+var fakeDomain = function (str) {
+    var m = str.match(/^(?:[A-Za-z0-9-]+\.)+([A-Za-z]+)$/);
+    return (m && !m[1].match(/^(?:com|net|org|name|edu|gov|au|tw|cz|cn|us|me|info|co|jp|ly|gd|gl)$/));
+};
+overlay.overlayObject(dactyl, {
+    open: function open(urls, params, force) {
+        if (typeof urls === "string") {
+            if (switchOrOpen(urls)) return;
+            if (fakeDomain(urls)) arguments[0] = options["defsearch"] + " " + arguments[0];
+        }
+        open.superapply(this, arguments);
+    }
+});
+document.addEventListener('click', function (event) {
+    let e = event.target;
+    if (e && event.which < 3 && e.tagName.match(/^a$/i) && e.href && switchOrOpen(e.href)) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+}, true);
+EOF
+
+"" custom hint
+js <<EOF
+var selectors = ["a.l", "a[href^='#!topic/']", "div.links_main"];
+hints.addMode("g", "Follow specfic hint in new tab", function (elem) buffer.followLink(elem, dactyl.NEW_TAB), null, selectors);
+hints.addMode("G", "Follow specfic hint in a background tab", function (elem) buffer.followLink(elem, dactyl.NEW_BACKGROUND_TAB), null, selectors);
+EOF
+group -locations www.google.com,groups.google.com,duckduckgo.com customHint
+nmap -builtin f ;g
+nmap -builtin F g;G
+group user
+
+"" google docs viewer
+js <<EOF
+hints.addMode("d", "Open link using google docs", function (elem) dactyl.open("https://docs.google.com/viewer?url=" + encodeURIComponent(elem.href), dactyl.NEW_TAB));
+EOF
+
+"" display tabgroup title on statusline
+js <<EOF
+overlay.overlayObject(statusline, {
+    updateTabCount: function updateTabCount(delayed) {
+        let title;
+        tabs.getGroups( function ({ GroupItems }) {
+            activeGroup = GroupItems.getActiveGroupItem();
+            title = (activeGroup.getTitle() === "")?
+                "" + activeGroup.id : activeGroup.getTitle();
+        });
+        updateTabCount.superapply(this, arguments);
+        if (!delayed) this.widgets.tabcount.value = "(" + title + ")" + this.widgets.tabcount.value;
+    }
+});
+EOF
+
+"" source boostrap if modified
+js <<EOF
+var bootstrapFile = "bootstrap";
+var bootstrapPref = "extensions.dactyl.bootstrapTime";
+var file = io.File(IO.runtimePath + "/" + bootstrapFile);
+if (file.exists() && file.isFile() && file.isReadable()) {
+    var mtime = Math.floor(file.lastModifiedTime / 1000);
+    var btime = prefs.get(bootstrapPref);
+    if (!btime || mtime > btime) {
+        dactyl.execute("runtime " + bootstrapFile);
+        prefs.set(bootstrapPref, Math.floor(Date.now() / 1000));
+    }
+}
+EOF
+"" }}}
+
+" vim: set ft=pentadactyl fdm=marker:

@@ -1,0 +1,3 @@
+nmap -builtin gd :dict<CR>
+nmap -builtin gD :dict!<CR>
+nmap -builtin gl :dict! -e<Space>
