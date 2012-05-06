@@ -1,4 +1,8 @@
 "" {{{ Mapping
+"" swap f/f
+nmap -builtin f F
+nmap -builtin F f
+
 "" scroll more
 nmap -builtin j 10j
 nmap -builtin k 10k
@@ -417,4 +421,3 @@ if (file.exists() && file.isFile() && file.isReadable()) {
 EOF
 "" }}}
 
-" vim: set ft=pentadactyl fdm=marker:
