@@ -8,8 +8,8 @@ nmap -builtin j 10j
 nmap -builtin k 10k
 
 "" swap d/D, and workaround for / tend to cause zombie compartments
-nmap -builtin d /❤❤❤❤<CR>D
-nmap -builtin D /❤❤❤❤<CR>d
+"map -builtin d /❤❤❤❤<CR>D
+"map -builtin D /❤❤❤❤<CR>d
 "nmap -builtin d :js config.removeTab(tabs.getTab())<CR>
 
 "" swap y/Y
@@ -29,8 +29,8 @@ nmap -builtin w <C-p>
 nmap -builtin e <C-n>
 
 "" back/forward
-nmap -builtin h <C-o>
-nmap -builtin l <C-i>
+"nmap -builtin h <C-o>
+"nmap -builtin l <C-i>
 
 "" prev selected tab
 nmap -builtin x <C-^>
