@@ -3,6 +3,9 @@
 nmap -builtin f F
 nmap -builtin F f
 
+"" 
+map -builtin <C+J> <CR>
+
 "" scroll more
 nmap -builtin j 10j
 nmap -builtin k 10k
@@ -29,8 +32,8 @@ nmap -builtin w <C-p>
 nmap -builtin e <C-n>
 
 "" back/forward
-"nmap -builtin h <C-o>
-"nmap -builtin l <C-i>
+nmap -builtin h <C-p>
+nmap -builtin l <C-n>
 
 "" prev selected tab
 nmap -builtin x <C-^>
@@ -61,6 +64,9 @@ nmap -builtin zZ zz
 
 "" set <Leader>
 map , <Leader>
+
+"" open sites
+nmap <Leader>w :tabopen http://app.baidu.com/exercises<CR>
 
 "" open addons manager
 nmap -builtin <Leader>a :dialog addons<CR>
